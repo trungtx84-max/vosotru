@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Khám Phá Thang Đo Bloom</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Chosen Palette: Warm Neutrals with Teal and Amber Accents -->
+    <!-- Application Structure Plan: The SPA is structured into three main interactive sections to facilitate a logical learning journey. 1. 'Hero/Intro' sets the tone. 2. 'Interactive Taxonomy Explorer' uses a split-view layout (steps on left, details on right) allowing users to actively click through the 6 levels of Bloom, preventing information overload while keeping context. 3. 'Actionable Roadmap' presents the 4 steps as a clickable timeline to transition from theory to practice. 4. 'Impact Visualization' uses a radar chart to visually compare traditional learning vs. Bloom mastery, proving the 'Why' (benefits) dynamically. -->
+    <!-- Visualization & Content Choices: 1. Taxonomy Levels -> Goal: Inform & Organize -> Method: Interactive Tabbed List (HTML/CSS) -> Justification: Allows user-paced exploration of hierarchical data. 2. 5S Examples -> Goal: Apply context -> Method: Dynamic Text Panel -> Justification: Connects abstract theory to concrete examples. 3. 4-Step Roadmap -> Goal: Process/Flow -> Method: Interactive Timeline (HTML/CSS) -> Justification: Shows sequential progression. 4. Learning Impact -> Goal: Compare -> Method: Radar Chart (Chart.js) -> Justification: Perfect for showing multi-dimensional skill profiles (Remembering vs. Creating). -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #fcfaf8; color: #292524; }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 350px;
+            max-height: 400px;
+        }
+        @media (min-width: 768px) {
+            .chart-container { height: 400px; }
+        }
+        .step-active { border-left-color: #0d9488; background-color: #f0fdfa; }
+        .roadmap-active { background-color: #0d9488; color: white; border-color: #0d9488; transform: scale(1.05); }
+        .transition-all { transition-property: all; transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1); transition-duration: 300ms; }
+    </style>
+</head>
+<body class="antialiased">
+
+    <nav class="bg-white shadow-sm sticky top-0 z-50">
+        <div class="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
+            <h1 class="font-bold text-2xl text-teal-700 tracking-tight">&#10022; Học Kỹ Năng Siêu Tốc</h1>
+            <div class="hidden md:flex space-x-6">
+                <a href="#levels" class="text-stone-600 hover:text-teal-600 font-medium">6 Cấp Độ Bloom</a>
+                <a href="#roadmap" class="text-stone-600 hover:text-teal-600 font-medium">Lộ Trình 4 Bước</a>
+                <a href="#impact" class="text-stone-600 hover:text-teal-600 font-medium">Hiệu Quả</a>
+            </div>
+        </div>
+    </nav>
+
+    <header class="max-w-4xl mx-auto px-4 py-16 text-center">
+        <div class="inline-block bg-amber-100 text-amber-800 px-3 py-1 rounded-full text-sm font-bold mb-4 tracking-wider uppercase">Bản Đồ Tư Duy</div>
+        <h2 class="text-4xl md:text-5xl font-extrabold text-stone-800 mb-6 leading-tight">Làm Chủ Kỹ Năng Với <span class="text-transparent bg-clip-text bg-gradient-to-r from-teal-600 to-cyan-600">Thang Đo Bloom</span></h2>
+        <p class="text-lg md:text-xl text-stone-600 leading-relaxed max-w-3xl mx-auto">
+            Bạn đã bao giờ tự hỏi làm sao để thực sự "làm chủ" một kỹ năng thay vì chỉ biết cưỡi ngựa xem hoa chưa? Thang đo Bloom chính là một "bản đồ tư duy" cực kỳ xịn sò, giúp bạn đi từ con số 0 tròn trĩnh đến mức độ chuyên gia thực thụ qua 6 bước cực kỳ logic và dễ hiểu!
+        </p>
+    </header>
+
+    <main class="max-w-6xl mx-auto px-4 pb-20 space-y-24">
+
+        <section id="levels" class="scroll-mt-24">
+            <div class="text-center mb-10">
+                <h3 class="text-3xl font-bold text-stone-800 mb-4">1. 6 Cấp Độ "Nâng Cấp" Bản Thân</h3>
+                <p class="text-stone-600 max-w-2xl mx-auto">
+                    Mục này giúp bạn khám phá từng nấc thang tư duy. Hãy click vào từng cấp độ bên trái để xem giải thích chi tiết và ví dụ thực tế về Quy trình 5S bên phải. Bạn đang đứng ở bậc nào trên hành trình chinh phục kỹ năng?
+                </p>
+            </div>
+
+            <div class="grid md:grid-cols-12 gap-8 items-start">
+                <div class="md:col-span-5 flex flex-col space-y-2" id="level-buttons-container">
+                </div>
+
+                <div class="md:col-span-7 bg-white rounded-2xl shadow-lg border border-stone-100 p-8 min-h-[350px] flex flex-col justify-center relative overflow-hidden">
+                    <div class="absolute top-0 right-0 w-32 h-32 bg-teal-50 rounded-bl-full -z-10 opacity-50"></div>
+                    
+                    <div id="level-detail-view" class="transition-all duration-500">
+                        <span id="detail-badge" class="inline-block bg-stone-100 text-stone-600 px-3 py-1 rounded-full text-sm font-bold mb-4">Cấp độ 1</span>
+                        <h4 id="detail-title" class="text-3xl font-bold text-teal-700 mb-4">Ghi nhớ</h4>
+                        <p id="detail-desc" class="text-stone-700 text-lg mb-6 leading-relaxed">
+                            Bước sơ khai nhất: Chỉ cần nhớ mặt chữ, định nghĩa hay các quy tắc cơ bản. Giống như việc bạn học bảng chữ cái vậy!
+                        </p>
+                        
+                        <div class="bg-amber-50 border-l-4 border-amber-400 p-5 rounded-r-lg">
+                            <h5 class="font-bold text-amber-800 mb-2 flex items-center">
+                                <span class="mr-2 text-xl">&#9881;</span> Ví dụ thực tế (Quy trình 5S)
+                            </h5>
+                            <p id="detail-example" class="text-amber-900 leading-relaxed">
+                                Thuộc lòng 5 chữ S: Sàng lọc, Sắp xếp, Sạch sẽ, Săn sóc, Sẵn sàng mà không vấp chữ nào.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="roadmap" class="scroll-mt-24 bg-stone-100 py-16 px-4 md:px-12 rounded-3xl">
+            <div class="text-center mb-12">
+                <h3 class="text-3xl font-bold text-stone-800 mb-4">2. Lộ Trình 4 Bước Để Trở Thành "Cao Thủ"</h3>
+                <p class="text-stone-600 max-w-2xl mx-auto">
+                    Để thực sự giỏi một kỹ năng mà không bị hụt hơi, bạn cần một chiến lược. Click vào các bước dưới đây để xem cách áp dụng Thang Bloom vào quá trình rèn luyện thực tế của bạn.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8" id="roadmap-nav">
+            </div>
+
+            <div class="bg-white p-8 rounded-2xl shadow-sm border border-stone-200">
+                <div id="roadmap-content" class="text-center md:text-left transition-all">
+                    <h4 id="roadmap-title" class="text-2xl font-bold text-stone-800 mb-4">Biết mình muốn gì (Xác định mục tiêu)</h4>
+                    <p id="roadmap-desc" class="text-stone-600 text-lg leading-relaxed">
+                        Đừng học lan man! Hãy chọn một kỹ năng thật cụ thể để bắt đầu thay vì một mục tiêu quá lớn. Việc chia nhỏ mục tiêu giúp người học không bị ngợp và dễ áp dụng Thang Bloom hơn. Hãy tự hỏi: Bạn chỉ cần biết sơ qua để giao tiếp (cấp 1-2) hay muốn trở thành "đại sư" để kiếm tiền từ kỹ năng đó (cấp 3-6)? Mục tiêu rõ ràng thì đường đi mới nhanh được.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <section id="impact" class="scroll-mt-24">
+            <div class="text-center mb-12">
+                <h3 class="text-3xl font-bold text-stone-800 mb-4">3. Tại sao bạn nên "kết bạn" với Bloom?</h3>
+                <p class="text-stone-600 max-w-3xl mx-auto">
+                    Phần này trực quan hóa sự khác biệt giữa cách học vẹt truyền thống và việc học sâu theo thang đo Bloom. Biểu đồ Radar dưới đây cho thấy cách Bloom giúp bạn phát triển toàn diện các kỹ năng tư duy bậc cao, từ đó nâng cao hiệu suất làm việc.
+                </p>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-12 items-center">
+                <div class="space-y-6">
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-stone-100 flex items-start">
+                        <div class="bg-teal-100 text-teal-600 w-12 h-12 rounded-full flex items-center justify-center font-bold text-xl shrink-0 mr-4">&#10003;</div>
+                        <div>
+                            <h4 class="font-bold text-lg text-stone-800 mb-1">Xóa tan sự mông lung</h4>
+                            <p class="text-stone-600">Bạn luôn biết mình đang đứng ở bậc thang nào và cần làm gì tiếp theo để leo cao hơn.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-stone-100 flex items-start">
+                        <div class="bg-teal-100 text-teal-600 w-12 h-12 rounded-full flex items-center justify-center font-bold text-xl shrink-0 mr-4">&#10003;</div>
+                        <div>
+                            <h4 class="font-bold text-lg text-stone-800 mb-1">Nói không với "học vẹt"</h4>
+                            <p class="text-stone-600">Bạn sẽ không còn tình trạng "chữ thầy trả thầy" vì kiến thức đã được chuyển hóa thành kỹ năng thực tế.</p>
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-stone-100 flex items-start">
+                        <div class="bg-teal-100 text-teal-600 w-12 h-12 rounded-full flex items-center justify-center font-bold text-xl shrink-0 mr-4">&#10003;</div>
+                        <div>
+                            <h4 class="font-bold text-lg text-stone-800 mb-1">Hiệu quả thay đổi chóng mặt</h4>
+                            <p class="text-stone-600">Khi đạt đến tầm "Sáng tạo", bạn không chỉ làm việc chăm chỉ (work hard) mà còn cực kỳ thông minh (work smart)!</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white p-6 rounded-3xl shadow-lg border border-stone-100">
+                    <h4 class="text-center font-bold text-stone-700 mb-2">So sánh Hồ sơ Năng lực</h4>
+                    <div class="chart-container">
+                        <canvas id="impactChart"></canvas>
+                    </div>
+                    <p class="text-center text-sm text-stone-500 mt-4">Trục radar thể hiện mức độ thành thạo ở 6 cấp độ tư duy.</p>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="bg-stone-900 text-stone-400 py-8 text-center mt-12">
+        <p>Ứng dụng tương tác dựa trên Thang đo Bloom &bull; Khám phá kiến thức một cách chủ động</p>
+    </footer>
+
+    <script>
+        const bloomData = [
+            {
+                level: 1,
+                title: "Ghi nhớ",
+                desc: "Bước sơ khai nhất: Chỉ cần nhớ mặt chữ, định nghĩa hay các quy tắc cơ bản. Giống như việc bạn học bảng chữ cái vậy!",
+                example: "Thuộc lòng 5 chữ S: Sàng lọc, Sắp xếp, Sạch sẽ, Săn sóc, Sẵn sàng mà không vấp chữ nào.",
+                color: "text-stone-500"
+            },
+            {
+                level: 2,
+                title: "Thông hiểu",
+                desc: "Không chỉ nhớ vẹt, bạn bắt đầu kết nối các thông tin lại để hiểu bản chất. Kiểu như 'Aha! Thì ra là thế!'",
+                example: "Bạn giải thích được rằng 'Sắp xếp' không chỉ là cho gọn, mà là để khi cần đồ gì, chỉ mất 30 giây là thấy ngay!",
+                color: "text-blue-500"
+            },
+            {
+                level: 3,
+                title: "Áp dụng",
+                desc: "Mang lý thuyết ra 'thực chiến'. Đây là lúc bạn bắt đầu đổ mồ hôi để rèn luyện kỹ năng thực tế.",
+                example: "Tự tay bắt tay vào dọn dẹp, dán nhãn và sắp xếp lại toàn bộ cái bàn làm việc của mình theo đúng sơ đồ 5S đã học.",
+                color: "text-green-500"
+            },
+            {
+                level: 4,
+                title: "Phân tích",
+                desc: "Bắt đầu 'mổ xẻ' vấn đề thành các mảnh nhỏ. Bạn tìm ra mối liên hệ giữa các bước và xem cái nào thực sự mang lại hiệu quả cao.",
+                example: "Bạn nhận thấy rằng nếu làm tốt bước 'Sàng lọc' ngay từ đầu, thì bước 'Sắp xếp' sẽ nhanh hơn hẳn 50%.",
+                color: "text-amber-500"
+            },
+            {
+                level: 5,
+                title: "Đánh giá",
+                desc: "Nhìn nhận lại toàn bộ quá trình một cách khách quan. Bạn so sánh với tiêu chuẩn và tự hỏi: 'Mình làm thế này đã đủ tốt chưa?'",
+                example: "Kiểm tra định kỳ và phê bình thẳng thắn: 'Quy trình này còn rườm rà ở bước Săn sóc, cần phải cải thiện để mọi người dễ làm theo hơn.'",
+                color: "text-orange-500"
+            },
+            {
+                level: 6,
+                title: "Sáng tạo",
+                desc: "Đỉnh cao là đây! Bạn không còn đi theo lối mòn nữa mà tự tạo ra giải pháp mới, mang đậm dấu ấn cá nhân hoặc tối ưu hơn cho tổ chức.",
+                example: "Bạn tự thiết kế ra một bộ checklist điện tử hoặc ứng dụng nhắc nhở 5S cực thông minh, giúp cả phòng thực hiện siêu nhanh và vui vẻ.",
+                color: "text-teal-600"
+            }
+        ];
+
+        const roadmapData = [
+            {
+                id: 1,
+                short: "1. Mục tiêu",
+                title: "Biết mình muốn gì (Xác định mục tiêu)",
+                desc: "Đừng học lan man! Hãy chọn một kỹ năng thật cụ thể để bắt đầu thay vì một mục tiêu quá lớn. Việc chia nhỏ mục tiêu giúp người học không bị ngợp và dễ áp dụng Thang Bloom hơn. Hãy tự hỏi: Bạn chỉ cần biết sơ qua để giao tiếp (cấp 1-2) hay muốn trở thành 'đại sư' để kiếm tiền từ kỹ năng đó (cấp 3-6)? Mục tiêu rõ ràng thì đường đi mới nhanh được."
+            },
+            {
+                id: 2,
+                short: "2. Học & Hiểu",
+                title: "Nắm vững cái gốc (Học và Hiểu)",
+                desc: "Đừng bao giờ coi thường lý thuyết suông nhé! Nếu cái gốc không chắc, bạn sẽ rất nhanh bị rối khi gặp tình huống phức tạp. Hãy dành thời gian đọc kỹ, hỏi sâu để nắm trọn bản chất vấn đề. Đây là nền tảng của mức Ghi nhớ và Thông hiểu."
+            },
+            {
+                id: 3,
+                short: "3. Thực hành",
+                title: "Làm ngay và luôn (Thực hành áp dụng)",
+                desc: "Đừng đợi đến khi 'hoàn hảo' mới làm. Hãy cứ bắt tay vào thực tế, dù có vấp váp hay sai sót thì đó mới là lúc bạn học được nhiều nhất. Thực hành chính là cây cầu nối giữa 'biết' và 'giỏi'. Đưa kiến thức vào bài toán thực tiễn."
+            },
+            {
+                id: 4,
+                short: "4. Cải tiến",
+                title: "Nhìn lại và cải tiến (Ngẫm lại)",
+                desc: "Đây là bước phân hóa giữa người bình thường và chuyên gia này! Sau mỗi lần làm, hãy dành 5-10 phút để đánh giá lại ưu nhược điểm. Từ đó, bạn sẽ liên tục nâng cấp bản thân lên các cấp độ Phân tích, Đánh giá và Sáng tạo."
+            }
+        ];
+
+        function renderBloomLevels() {
+            const container = document.getElementById('level-buttons-container');
+            
+            bloomData.forEach((item, index) => {
+                const btn = document.createElement('button');
+                btn.className = `w-full text-left px-6 py-4 rounded-xl border-l-4 border-transparent bg-white shadow-sm hover:shadow-md hover:bg-stone-50 transition-all focus:outline-none flex items-center justify-between group`;
+                btn.onclick = () => updateLevelDetail(index, btn);
+                
+                if(index === 0) btn.classList.add('step-active');
+
+                btn.innerHTML = `
+                    <div class="flex items-center">
+                        <span class="w-8 h-8 rounded-full bg-stone-100 flex items-center justify-center font-bold text-stone-500 mr-4 group-hover:bg-teal-100 group-hover:text-teal-700 transition-colors">${item.level}</span>
+                        <span class="font-bold text-stone-700 text-lg group-hover:text-teal-700 transition-colors">${item.title}</span>
+                    </div>
+                    <span class="text-stone-300 group-hover:text-teal-400 text-xl">&#10095;</span>
+                `;
+                container.appendChild(btn);
+            });
+        }
+
+        function updateLevelDetail(index, btnElement) {
+            const buttons = document.querySelectorAll('#level-buttons-container button');
+            buttons.forEach(btn => btn.classList.remove('step-active', 'bg-teal-50/50'));
+            if(btnElement) btnElement.classList.add('step-active', 'bg-teal-50/50');
+
+            const data = bloomData[index];
+            const view = document.getElementById('level-detail-view');
+            
+            view.style.opacity = '0';
+            
+            setTimeout(() => {
+                document.getElementById('detail-badge').textContent = `Cấp độ ${data.level}`;
+                
+                const titleEl = document.getElementById('detail-title');
+                titleEl.className = `text-3xl font-bold mb-4 ${data.color}`;
+                titleEl.textContent = data.title;
+                
+                document.getElementById('detail-desc').textContent = data.desc;
+                document.getElementById('detail-example').textContent = data.example;
+                
+                view.style.opacity = '1';
+            }, 200);
+        }
+
+        function renderRoadmap() {
+            const nav = document.getElementById('roadmap-nav');
+            
+            roadmapData.forEach((item, index) => {
+                const btn = document.createElement('button');
+                btn.className = `py-3 px-2 rounded-xl font-bold border-2 border-stone-200 text-stone-600 transition-all hover:border-teal-400 focus:outline-none`;
+                if(index === 0) btn.classList.add('roadmap-active');
+                
+                btn.textContent = item.short;
+                btn.onclick = () => updateRoadmap(index, btn);
+                nav.appendChild(btn);
+            });
+        }
+
+        function updateRoadmap(index, btnElement) {
+            const buttons = document.querySelectorAll('#roadmap-nav button');
+            buttons.forEach(btn => btn.classList.remove('roadmap-active', 'border-teal-600', 'text-white'));
+            if(btnElement) btnElement.classList.add('roadmap-active');
+
+            const data = roadmapData[index];
+            const content = document.getElementById('roadmap-content');
+            
+            content.style.opacity = '0';
+            content.style.transform = 'translateY(10px)';
+            
+            setTimeout(() => {
+                document.getElementById('roadmap-title').textContent = data.title;
+                document.getElementById('roadmap-desc').textContent = data.desc;
+                
+                content.style.opacity = '1';
+                content.style.transform = 'translateY(0)';
+            }, 200);
+        }
+
+        function initChart() {
+            const ctx = document.getElementById('impactChart').getContext('2d');
+            
+            new Chart(ctx, {
+                type: 'radar',
+                data: {
+                    labels: ['Ghi nhớ', 'Thông hiểu', 'Áp dụng', 'Phân tích', 'Đánh giá', 'Sáng tạo'],
+                    datasets: [
+                        {
+                            label: 'Làm chủ (Thang Bloom)',
+                            data: [100, 95, 90, 85, 80, 95],
+                            backgroundColor: 'rgba(13, 148, 136, 0.2)',
+                            borderColor: 'rgba(13, 148, 136, 1)',
+                            pointBackgroundColor: 'rgba(13, 148, 136, 1)',
+                            borderWidth: 2,
+                            fill: true
+                        },
+                        {
+                            label: 'Học vẹt (Truyền thống)',
+                            data: [90, 60, 30, 10, 5, 0],
+                            backgroundColor: 'rgba(217, 119, 6, 0.2)',
+                            borderColor: 'rgba(217, 119, 6, 1)',
+                            pointBackgroundColor: 'rgba(217, 119, 6, 1)',
+                            borderWidth: 2,
+                            borderDash: [5, 5],
+                            fill: true
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        r: {
+                            angleLines: { color: 'rgba(0, 0, 0, 0.1)' },
+                            grid: { color: 'rgba(0, 0, 0, 0.1)' },
+                            pointLabels: {
+                                font: { size: 12, family: "'Segoe UI', sans-serif", weight: 'bold' },
+                                color: '#444'
+                            },
+                            ticks: { display: false, min: 0, max: 100 }
+                        }
+                    },
+                    plugins: {
+                        legend: { position: 'bottom', labels: { usePointStyle: true, padding: 20 } },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) { label += ': '; }
+                                    if (context.parsed.r !== null) {
+                                        if(context.parsed.r > 80) label += "Cao";
+                                        else if(context.parsed.r > 40) label += "Trung bình";
+                                        else label += "Thấp";
+                                    }
+                                    return label;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            renderBloomLevels();
+            renderRoadmap();
+            initChart();
+        });
+    </script>
+</body>
+</html>
